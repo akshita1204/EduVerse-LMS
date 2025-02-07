@@ -11,10 +11,14 @@ import Dashboard from './pages/educator/Dashboard'
 import AddCourse from './pages/educator/AddCourse'
 import MyCourses from './pages/educator/MyCourses'
 import StudentsEnrolled from './pages/educator/StudentsEnrolled'
+import Navbar from './components/students/Navbar'
 
 function App() {
   return (
-    <div>
+    <div className='text-gray-900 min-h-screen'>
+
+      <Navbar/>
+
       <Routes>
         <Route path='/' element={<Home/>} />
         <Route path='/courses-list' element={<CoursesList/>} />
