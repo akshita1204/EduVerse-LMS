@@ -23,7 +23,7 @@ const CourseDetails = () => {
 
   useEffect(() => {
     fetchCourseData();
-  }, []);
+  }, [allCourses]);
 
 
   const togglefunction=(index)=>
