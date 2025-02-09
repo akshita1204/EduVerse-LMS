@@ -35,7 +35,7 @@ export const AppContextProvider=(props)=>
     }
 
     //function to calculate the course duration 
-    const calculateCourseDuration=()=>
+    const calculateCourseDuration=(course)=>
     {
        let time=0
        course.courseContent.map((chapter)=>chapter.chapterContent.map((lecture)=>time+=lecture.lectureDuration))
