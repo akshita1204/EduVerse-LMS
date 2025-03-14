@@ -1,80 +1,87 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import { dummyCourses } from "../assets/assets";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import humanizeDuration from 'humanize-duration'
+import humanizeDuration from "humanize-duration";
+import PropTypes from "prop-types"; 
+import {useAuth,useUser} from '@clerk/clerk-react'
 
+export const AppContext = createContext();
 
-export const AppContext=createContext()
-export const AppContextProvider=(props)=>
-{
-    const currency=import.meta.env.VITE_CURRENCY
-    const navigate=useNavigate()
+export const AppContextProvider = ({ children }) => {
+    const currency = import.meta.env.VITE_CURRENCY;
+    const navigate = useNavigate();
 
-    const [allCourses,setAllCourses]=useState([])
-    const [isEducator,setIsEducator]=useState(true)
-    const [enrolledCourses,setenrolledCourses]=useState([])
-    //fetch all courses
-    const fetchAllCourses=async()=>
+    const {getToken}=useAuth()
+    const {user}=useUser()
+
+    const [allCourses, setAllCourses] = useState([]);
+    const [isEducator, setIsEducator] = useState(true);
+    const [enrolledCourses, setEnrolledCourses] = useState([]);
+
+    // Fetch all courses
+    useEffect(() => {
+        setAllCourses(dummyCourses);
+        setEnrolledCourses(dummyCourses);
+    }, []);
+
+    const logToken=async()=>
     {
-        setAllCourses(dummyCourses)
+        console.log(await getToken())
     }
-
-    const calculateRating=(course)=>{
-        if(course.courseRatings.length===0) return 0;
-        let totalRating=0
-        course.courseRatings.forEach(rating=>{totalRating+=rating.rating})
-        return totalRating / course.courseRatings.length
-    }
-    
-    //function to calculate course chapter time
-    const calculateChapterTime=(chapter)=>
-    {
-       let time=0
-       chapter.chapterContent.map((lecture)=>time+=lecture.lectureDuration)
-       return humanizeDuration(time*60*1000, {units:["h","m"]})
-    }
-
-    //function to calculate the course duration 
-    const calculateCourseDuration=(course)=>
-    {
-       let time=0
-       course.courseContent.map((chapter)=>chapter.chapterContent.map((lecture)=>time+=lecture.lectureDuration))
-       return humanizeDuration(time*60*1000, {units:["h","m"]})
-    }
-
-    //function to calculatae the number of lectures in the course
-    const calculateNumberofLectures=(course)=>
-    {
-        let total=0
-        course.courseContent.forEach(chapter=>
+    useEffect(() => {
+        if(user)
         {
-            if(Array.isArray(chapter.chapterContent))
-            {
-                total+=chapter.chapterContent.length;
-            }
+            logToken()
         }
+    }, [user]);
+
+    // Calculate rating
+    const calculateRating = (course) => {
+        if (course.courseRatings.length === 0) return 0;
+        return course.courseRatings.reduce((sum, rating) => sum + rating.rating, 0) / course.courseRatings.length;
+    };
+
+    // Calculate chapter time
+    const calculateChapterTime = (chapter) =>
+        humanizeDuration(
+            chapter.chapterContent.reduce((time, lecture) => time + lecture.lectureDuration, 0) * 60 * 1000,
+            { units: ["h", "m"] }
         );
-        return total;
-    }
 
-    //fetch user enrolled courses
-    const fetchUserEnrolledCourses=async()=>
-    {
-        setenrolledCourses(dummyCourses)
-    }
+    // Calculate course duration
+    const calculateCourseDuration = (course) =>
+        humanizeDuration(
+            course.courseContent.reduce(
+                (time, chapter) => time + chapter.chapterContent.reduce((t, lecture) => t + lecture.lectureDuration, 0),
+                0
+            ) * 60 * 1000,
+            { units: ["h", "m"] }
+        );
 
+    // Calculate number of lectures
+    const calculateNumberofLectures = (course) =>
+        course.courseContent.reduce(
+            (total, chapter) => total + (Array.isArray(chapter.chapterContent) ? chapter.chapterContent.length : 0),
+            0
+        );
 
-    useEffect(()=>{fetchAllCourses()
-        fetchUserEnrolledCourses()
-    },[])
+    const value = {
+        currency,
+        allCourses,
+        navigate,
+        calculateRating,
+        isEducator,
+        setIsEducator,
+        calculateChapterTime,
+        calculateCourseDuration,
+        calculateNumberofLectures,
+        enrolledCourses,
+    };
 
-    const value={
-          currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, calculateChapterTime, calculateCourseDuration, calculateNumberofLectures, enrolledCourses, fetchUserEnrolledCourses
-    }
-    return (
-        <AppContext.Provider value={value}>
-            {props.children}
-        </AppContext.Provider>
-    )
-}
+    return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+};
+
+// ✅ Add PropTypes Validation
+AppContextProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
