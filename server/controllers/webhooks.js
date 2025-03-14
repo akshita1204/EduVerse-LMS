@@ -9,7 +9,7 @@ export const clerkwebhooks=async(req,res)=>
     {
         "svix-id":req.headers["svix-id"],
         "svix-timestamp":req.headers["svix-timestamp"],
-        "svix-timestamp":req.headers["svix-signature"]
+        "svix-signature":req.headers["svix-signature"]
     })
     const {data,type}=req.body
     switch(type)
@@ -39,7 +39,7 @@ export const clerkwebhooks=async(req,res)=>
             }
             case 'user.deleted':
                 {
-                    await User.findIdAndDelete(data.id)
+                    await User.findByIdAndDelete(data.id)
                     res.json({})
                     break;
                 }
