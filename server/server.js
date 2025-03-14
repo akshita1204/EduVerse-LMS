@@ -5,11 +5,13 @@ import connectdb from './configs/mongodb.js'
 import {clerkwebhooks} from './controllers/webhooks.js'
 import { clerkMiddleware } from '@clerk/express'
 import educatorRouter from './routes/educatorRoutes.js'
+import connectCloudinary from './configs/cloudinary.js'
 
 //initialsize express
 const app=express()
 //connect to db
 await connectdb()
+await connectCloudinary()
 
 //middlewares
 app.use(cors()) //so that we can add our app to other domains
